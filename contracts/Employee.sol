@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 
-interface Employer {
+interface EmployerInterface {
     function getSalary(address employee) external view returns(uint256);
 
     function checkEmployeeStatus(address employee) external view returns(uint8);
@@ -15,13 +15,12 @@ contract Employee is Ownable {
     address employee;
     address employer;
     string name;
-    // address employerSmartContractAddress = 0x91c6B8b3B118d42A9a558FF5FdC29447E02f51Ae;
 
     constructor(string memory _name, address _employer) {
         name = _name;
         employee = msg.sender;
         employer = _employer;
-        // Employer(employerSmartContractAddress).updateEmployeeStatus(msg.sender);
+        // Call update function in Employer contract
     }
 
     // function getSalary() public view onlyOwner returns (uint256) {

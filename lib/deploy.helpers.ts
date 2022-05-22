@@ -58,3 +58,6 @@ import {
   
   export const getEmployee = (params: GetContractParams<EmployeeFactory>) =>
     getContract<EmployeeFactory, Employee>(params);
+
+    export const getEmployer = (params: GetContractParams<EmployerFactory>) =>
+    getContract<EmployerFactory, Employer>(params);
