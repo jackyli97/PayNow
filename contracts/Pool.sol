@@ -42,10 +42,10 @@ contract Pool {
         monthlyAmount = _monthlyAmount;
     }
 
-    function deposit() public {
+    function deposit(address to) public {
         require(
             msg.sender == employerAddress,
-            "Only an employer can deposit money in the pool"
+            "Only employers can deposit money in the pool"
         );
         balance += monthlyAmount;
     }

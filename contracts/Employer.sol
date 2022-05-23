@@ -3,6 +3,10 @@ pragma solidity ^0.8.0;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
+// interface PoolInterface {
+//         function deposit(address _to) external;
+//     }
+
 contract Employer is Ownable{
     string employerName;
     address employer;
@@ -10,7 +14,9 @@ contract Employer is Ownable{
     mapping(address => uint256) private _salaries;
     // Employee status 0=not added by empployer, 1=added by employer,2=employee has created contract/account
     mapping(address => uint8) private _employeeStatus;
+    mapping(address=>uint256) private _balances;
 
+    
 
     constructor(string memory _employerName) {
         employerName = _employerName;
@@ -57,4 +63,8 @@ contract Employer is Ownable{
     }
 
     // Deposit function, has dependency to Pool contract
+    function deposit(address _employee) external employeeAdded(_employee){
+        // PoolInterface().deposit(_employee);
+
+    }
 }
