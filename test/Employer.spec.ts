@@ -92,7 +92,7 @@ describe("Employer tests", () => {
         it("Should revert if employee has not been added", async () => {
             await expect(
                 employerContract.connect(account1).getSalary(account1.address)
-            ).to.be.revertedWith("Employer has not been added by employer");
+            ).to.be.revertedWith("Employee has not been added by employer");
         });
 
         it("Should revert if caller is not the requested employee", async () => {
@@ -122,7 +122,7 @@ describe("Employer tests", () => {
         it("Should revert if employee has not been added", async () => {
             await expect(
                 employerContract.updateSalary(account1.address, 3000)
-            ).to.be.revertedWith("Employer has not been added by employer");
+            ).to.be.revertedWith("Employee has not been added by employer");
         });
 
         it("Should revert if caller is not the employer", async () => {
@@ -145,7 +145,7 @@ describe("Employer tests", () => {
         it("Should revert if employee has not been added", async () => {
             await expect(
                 employerContract.checkEmployeeStatus(account1.address)
-            ).to.be.revertedWith("Employer has not been added by employer");
+            ).to.be.revertedWith("Employee has not been added by employer");
         });
 
         it("Should revert if caller is not the requested employee", async () => {
@@ -167,7 +167,7 @@ describe("Employer tests", () => {
         it("Should revert if employee has not been added", async () => {
             await expect(
                 employerContract.connect(account1).updateEmployeeStatus(account1.address)
-            ).to.be.revertedWith("Employer has not been added by employer");
+            ).to.be.revertedWith("Employee has not been added by employer");
         });
 
         it("Should update an employees' status", async () => {
@@ -182,13 +182,11 @@ describe("Employer tests", () => {
             employerContract.addEmployee(account1.address, 2000);
             await expect(
                 employerContract.updateEmployeeStatus(account1.address)
-            ).to.be.revertedWith("Employees can only request their own statuses");
+            ).to.be.revertedWith("Employees can only update their own statuses");
             await expect(
                 employerContract.connect(account2).updateEmployeeStatus(account1.address)
-            ).to.be.revertedWith("Employees can only request their own statuses");
+            ).to.be.revertedWith("Employees can only update their own statuses");
         });
-        
-        // Likely require additional test after this function is added to Employee contract
     });
 
 });
