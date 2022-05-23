@@ -2,31 +2,31 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface EmployerInterface {
+    function getSalary(address _employee) external view returns(uint256);
 
-interface Employer {
-    function getSalary(address employee) external view returns(uint256);
+    function checkEmployeeStatus(address _employee) external view returns(uint8);
 
-    function checkEmployeeStatus(address employee) external view returns(uint8);
-
-    function updateEmployeeStatus(address employee) external view;
+    function updateEmployeeStatus(address _employee) external;
 }
 
 contract Employee is Ownable {
     address employee;
-    address employer;
+    address employerContractAddress;
     string name;
-    // address employerSmartContractAddress = 0x91c6B8b3B118d42A9a558FF5FdC29447E02f51Ae;
 
-    constructor(string memory _name, address _employer) {
+    /// @dev Upon contract creation, the update function in Employer contract is called to update the Employee's status to 2 aka profile/contract created
+    constructor(string memory _name, address _employerContractAddress) {
         name = _name;
         employee = msg.sender;
-        employer = _employer;
-        // Employer(employerSmartContractAddress).updateEmployeeStatus(msg.sender);
+        employerContractAddress = _employerContractAddress;
+        // Call update function in Employer contract
+        EmployerInterface(_employerContractAddress).updateEmployeeStatus(msg.sender);
     }
 
-    // function getSalary() public view onlyOwner returns (uint256) {
-    //     return Employer(employerSmartContractAddress).getSalary(employeeAddress);
-    // }
+    function getSalary() public view onlyOwner returns (uint256) {
+        return EmployerInterface(employerContractAddress).getSalary(employee);
+    }
 
     // function getBalance(address _employee) public view onlyOwner returns (uint256) {
     //     // Returns balance by calling Pool getBalance func
