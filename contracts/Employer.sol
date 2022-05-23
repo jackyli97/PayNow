@@ -4,12 +4,17 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "hardhat/console.sol";
 
 contract Employer is Ownable{
+    struct Balance {
+        uint256 unlocked;
+        uint256 locked;
+    }
     string employerName;
     address employer;
     uint32 private _numEmployees;
-    mapping(address => uint256) private _salaries;
+    mapping(address => uint256) private _salaries; //annual 
     // Employee status 0=not added by empployer, 1=added by employer,2=employee has created contract/account
     mapping(address => uint8) private _employeeStatus;
+    mapping(address => Balance) private _balances;
 
 
     constructor(string memory _employerName) {
@@ -56,5 +61,32 @@ contract Employer is Ownable{
         _employeeStatus[_employee] = 2;
     }
 
-    // Deposit function, has dependency to Pool contract
+    function getLockedBalance(address _employee) public employeeAdded(_employee) returns (uint256){
+        return _balances[_employee].locked;
+    }
+
+    function getUnlockedBalance(address _employee) public employeeAdded(_employee) returns (uint256){
+        return _balances[_employee].unlocked;
+    }
+
+    function unlockBalance(address _employee) public employeeAdded(_employee) {
+        uint256 amount = _balances[_employee].locked/30;
+        require(_balances[_employee].locked - amount >= 0, "Can't unlock more than the locked funds available");
+        _balances[_employee].locked -=  amount;
+        _balances[_employee].unlocked += amount;
+    }
+
+    function updateWithdrawnBalance(address _employee, uint256 _amount) external employeeAdded(_employee) {
+        require(_balances[_employee].unlocked - _amount >= 0, "Can't withdraw more than the unlocked funds available");
+        _balances[_employee].unlocked -= _amount;
+    }
+
+    // Deposit function
+    function deposit(address _employee) public employeeAdded(_employee) onlyOwner {
+        // console.log(_balances[_employee].locked, _salaries[_employee]/12);
+
+        _balances[_employee].locked += _salaries[_employee]/12;
+        // console.log(_balances[_employee].locked);
+
+    }
 }

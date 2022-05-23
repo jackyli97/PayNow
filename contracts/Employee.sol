@@ -8,6 +8,12 @@ interface EmployerInterface {
     function checkEmployeeStatus(address _employee) external view returns(uint8);
 
     function updateEmployeeStatus(address _employee) external;
+
+    function getLockedBalance(address _employee) external view returns(uint256);
+
+    function getUnlockedBalance(address _employee) external view returns(uint256);
+
+    function updateWithdrawnBalance(address _employee, uint256 _amount) external;
 }
 
 contract Employee is Ownable {
@@ -28,11 +34,15 @@ contract Employee is Ownable {
         return EmployerInterface(employerContractAddress).getSalary(employee);
     }
 
-    // function getBalance(address _employee) public view onlyOwner returns (uint256) {
-    //     // Returns balance by calling Pool getBalance func
-    // }
+    function getLockedBalance(address _employee) public view onlyOwner returns (uint256) {
+        return EmployerInterface(employerContractAddress).getLockedBalance(_employee);
+    }
 
-    // function withdraw(uint256 _amount) public onlyOwner view {
-    //     // Call withdraw function in Pool
-    // }
+    function getUnlockedBalance(address _employee) public view onlyOwner returns (uint256) {
+        return EmployerInterface(employerContractAddress).getUnlockedBalance(_employee);
+    }
+
+    function withdraw(uint256 _amount) public onlyOwner {
+        return EmployerInterface(employerContractAddress).updateWithdrawnBalance(employee, _amount);
+    }
 }
