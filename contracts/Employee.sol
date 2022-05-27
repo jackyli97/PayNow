@@ -21,13 +21,12 @@ contract Employee is Ownable {
     address employerContractAddress;
     string name;
 
-    /// @dev Upon contract creation, the update function in Employer contract is called to update the Employee's status to 2 aka profile/contract created
+    /// @notice Upon contract creation, the update function in Employer contract is called to update the Employee's status to 2 aka profile/contract created
     constructor(string memory _name, address _employerContractAddress) {
         name = _name;
         employee = msg.sender;
         employerContractAddress = _employerContractAddress;
-        // Call update function in Employer contract
-        EmployerInterface(_employerContractAddress).updateEmployeeStatus(msg.sender);
+        EmployerInterface(_employerContractAddress).updateEmployeeStatus(msg.sender); // Call update function in Employer contract
     }
 
     function getSalary() public view onlyOwner returns (uint64) {

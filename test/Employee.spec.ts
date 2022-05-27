@@ -21,12 +21,14 @@ describe("Employee tests", () => {
   let account1: SignerWithAddress;
   let account2: SignerWithAddress;
 
+  const fakeUSDC = "0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4"
+
 
   beforeEach(async () => {
     // Default accounts that are used when local in memory nodes are running
     [deployer, employerDeployer, account1, account2] = await ethers.getSigners();
     employerFactory = await ethers.getContractFactory("Employer");
-    employerContract = await employerFactory.connect(employerDeployer).deploy("Test Employer");
+    employerContract = await employerFactory.connect(employerDeployer).deploy("Test Employer", fakeUSDC);
     await employerContract.addEmployee(deployer.address, 3600);
     employeeContract = await getEmployee({ contractName: "Employee", deployParams: [
         "Test Employee",

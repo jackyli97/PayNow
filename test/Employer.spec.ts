@@ -12,20 +12,15 @@ describe("Employer tests", () => {
     let deployer: SignerWithAddress;
     let account1: SignerWithAddress;
     let account2: SignerWithAddress;
-    /**
-     * @dev As you may already know, Solidity doesn't support floating point numbers.
-     * An Ether amount can have up to 18 decimals and ERC20 too (by default).
-     * 10^18 wei = 1 Ether.
-     * 10^18 "Camp Token wei" = 1 Camp Token.
-     */
-    const oneCampInWei = ethers.utils.parseEther("1");
+
+    const fakeUSDC = "0x68ec573C119826db2eaEA1Efbfc2970cDaC869c4"
 
     beforeEach(async () => {
       // Default accounts that are used when local in memory nodes are running
       [deployer, account1, account2] = await ethers.getSigners();
       employerContract = await getEmployer({
         contractName: "Employer",
-        deployParams: ["Test Employer"],
+        deployParams: ["Test Employer", fakeUSDC],
       });
     });
 
@@ -49,12 +44,6 @@ describe("Employer tests", () => {
         await expect(
           employerContract.addEmployee(account1.address, 5000)
         ).to.be.revertedWith("Employee has already been added to employees");
-      });
-
-      it("Should revert if salary is too small", async () => {
-        await expect(
-          employerContract.addEmployee(account1.address, 360)
-        ).to.be.revertedWith("Salary is too low for application");
       });
 
       it("Should be able to add mulitple unique employees", async () => {
@@ -265,17 +254,6 @@ describe("Employer tests", () => {
         .to.eq(monthlySalary-dailyWithdrawAmount);
         expect(await employerContract.getUnlockedBalance(account1.address))
         .to.eq(dailyWithdrawAmount);
-      })
-
-      it("Pays employee more on first day of month if monthly amount not perfectly divisble by num of days in month", async () => {
-        employerContract.addEmployee(account1.address, 3600);
-        const monthlySalary = 3600 / 12;
-        await employerContract.deposit(account1.address, monthlySalary, 31);
-        await employerContract.unlockBalance(account1.address);
-        const dailyAmount = Math.floor(monthlySalary / 31);
-        const moduloAmount = monthlySalary % 31;
-        expect(await employerContract.getUnlockedBalance(account1.address))
-        .to.eq(dailyAmount + moduloAmount);
       })
 
       it("Revert when balance is insufficient", async () => {
