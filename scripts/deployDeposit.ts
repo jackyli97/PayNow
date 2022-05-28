@@ -9,24 +9,25 @@ import {
 
 export async function deployEmployee() {
 
-    let employeeContract: Employee;
     let employerContract: Employer;
-    let employeeFactory: EmployeeFactory;
     let employee: SignerWithAddress;
+    let employer: SignerWithAddress;
 
     employerContract = await ethers.getContractAt("Employer", "0x57B1Aa378fA61a05a91dDBE5EEC5BF8Ecd7901Bf");
 
-    [, employee] = await ethers.getSigners()
+    [employer, employee] = await ethers.getSigners()
 
-    employeeFactory = await ethers.getContractFactory("Employee");
+    const oldBalance = await employerContract.connect(employer.address).getLockedBalance(employee.address)
 
-    employeeContract = await employeeFactory.connect(employee).deploy("Test Employee 2", employerContract.address);
+    console.log(`Employee's old locked balance: ${oldBalance}`);
 
-    
+    const amount = ethers.utils.parseUnits("100.0", 6)
 
-    console.log(`Employee Contract Address: ${employeeContract.address}`);
+    await employerContract.connect(employer.address).deposit(employee.address, amount);
 
-  return employeeContract;
+    const newBalance = await employerContract.connect(employer).getLockedBalance(employee.address)
+
+    console.log(`Employee's new locked balance: ${newBalance}`);
 }
 
 deployEmployee()

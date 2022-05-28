@@ -12,9 +12,12 @@ contract Employer is Ownable{
     struct Balance {
         uint64 unlocked;
         uint64 locked;
+        uint64 dailyUnlockAmount;
+        uint256 depositTime;
+        uint256 lastUnlock;
     }
-    string employerName;
-    address employer;
+    string public employerName;
+    address public employer;
     uint32 private _numEmployees;
     mapping(address => uint64) private _salaries; //Salaries are annual and should be whole numbers only
     // Employee status 0=not added by empployer, 1=added by employer,2=employee has created contract/account
@@ -24,13 +27,13 @@ contract Employer is Ownable{
 
     address public usdc;
 
-    event EmployerCreated(address indexed _employerContract);
+    event EmployerCreated(address indexed _employerContract, string indexed _employerName);
 
     constructor(string memory _employerName, address _usdc) {
         employerName = _employerName;
         employer = msg.sender;
         usdc = _usdc;
-        emit EmployerCreated(address(this));
+        emit EmployerCreated(address(this), employerName);
     }
 
     modifier employeeAdded(address _employee) {
@@ -75,38 +78,74 @@ contract Employer is Ownable{
 
     function getLockedBalance(address _employee) public view employeeAdded(_employee) returns (uint64){
         require(tx.origin == _employee || msg.sender == employer, "Employees can only request their own balance");
-        Balance memory employeeBalance = _balances[_employee];
-        return employeeBalance.locked;
+        return _balances[_employee].locked;
     }
 
+
+    
     function getUnlockedBalance(address _employee) public view employeeAdded(_employee) returns (uint64){
         require(tx.origin == _employee || msg.sender == employer, "Employees can only request their own balance");
-        Balance memory employeeBalance = _balances[_employee];
-        return employeeBalance.unlocked;
+        return _balances[_employee].unlocked;
     }
 
-    function unlockBalance(address _employee) public employeeAdded(_employee) {
-        uint64 unlockedAmount = _employeeDailyUnlockAmount[_employee];
-        require(_balances[_employee].locked > 0, "Insufficient balance");
-        uint64 newLockedBalance = _balances[_employee].locked.sub(unlockedAmount); //Subtracted amount should not ever be more than the balance, assured b/c we are dividing into equal segments
-        _balances[_employee].locked =  newLockedBalance;
-        _balances[_employee].unlocked = unlockedAmount;
+    /**
+        * @dev First if logic checks if any amount has been unlocked yet, if not we take days since deposit days as amount to unlock
+        * Other wise we calculate how much to unlock by taking difference between now and last unlock
+        *
+        * We also if more than 28 days has passed between any action(unlock or deposit), as in that case all funds should be unlocked
+    **/
+    function unlockBalance(address _employee) employeeAdded(_employee) external {
+        require(tx.origin == _employee || msg.sender == employer, "Employees can only unlock their own balance");
+        uint256 currentTime = block.timestamp;
+         uint256 lastUnlock =  _balances[_employee].lastUnlock;
+         uint256 daysPassed;
+         if (lastUnlock == 0) {
+             daysPassed = (currentTime -  _balances[_employee].depositTime) / 60 / 60 / 24;
+         }
+         else {
+             daysPassed = (currentTime - lastUnlock) / 60 / 60 / 24;
+         }
+
+        /// @dev Need to remove this line before mainnet deploys, for dev purposes
+         daysPassed = 28;
+
+         if (daysPassed >= 28) {
+               _balances[_employee].unlocked += _balances[_employee].locked;
+               _balances[_employee].locked = 0;
+         }
+         else {
+             uint64 unlockAmount =  _balances[_employee].dailyUnlockAmount * uint64(daysPassed);
+            _balances[_employee].unlocked += unlockAmount;
+            _balances[_employee].locked -= unlockAmount;
+         }
+
+         _balances[_employee].lastUnlock = currentTime;
     }
 
     function withdraw(address _employee, uint64 _amount) external employeeAdded(_employee) {
          require(tx.origin == _employee, "Only employees can withdraw from their balance");
-          IERC20(usdc).transferFrom(employer, _employee, _amount);
+          IERC20(usdc).transferFrom(employer, _employee, uint256(_amount));
         _balances[_employee].unlocked = _balances[_employee].unlocked.sub(_amount);
     }
 
     /**
-    * @notice Need to assert in frontend that this is only going to be called once monthly
-        and need to require in frontend that this amount can't be less than the num of days in month
+        * @dev Employers should only be able to deposit once a month, this can be assured by if 
+        * one month has passed since last deposit date
+        *
+        *We also can use weeks passed, to see if there is any remaining locked balance left in an employee's balance, if so, then unlock
     **/
-    function deposit(address _employee, uint64 _amount, uint8 _daysInMonth) public employeeAdded(_employee) onlyOwner {
-        IERC20(usdc).approve(employer, _amount);
-        _employeeDailyUnlockAmount[_employee] = _amount / _daysInMonth;
-        uint64 oldBalance = _balances[_employee].locked;
-        _balances[_employee].locked = oldBalance.add(_amount);
+    function deposit(address _employee, uint64 _amount) public employeeAdded(_employee) onlyOwner {
+         uint256 currentTime = block.timestamp;
+        IERC20(usdc).approve(_employee, uint256(_amount));
+
+        if (_balances[_employee].locked > 0) {
+            uint256 weeksPassed = ((currentTime - _balances[_employee].depositTime) / 60 / 60 / 24 / 7);
+            require(weeksPassed >= 4 weeks, "Can only deposit once a month");
+            _balances[_employee].unlocked += _balances[_employee].locked;
+            _balances[_employee].locked = 0;
+        }
+        _balances[_employee].dailyUnlockAmount = _amount / 28;
+        _balances[_employee].locked = (_amount);
+        _balances[_employee].depositTime = currentTime;
     }
 }
