@@ -16,6 +16,7 @@ contract Employer is Ownable{
         uint256 depositTime;
         uint256 lastUnlock;
     }
+
     string public employerName;
     address public employer;
     uint32 private _numEmployees;
@@ -24,6 +25,8 @@ contract Employer is Ownable{
     mapping(address => uint64) private _employeeDailyUnlockAmount;
     mapping(address => uint8) private _employeeStatus;
     mapping(address => Balance) private _balances;
+
+
 
     address public usdc;
 

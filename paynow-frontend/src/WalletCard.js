@@ -3,6 +3,7 @@
 import React, {useState} from 'react'
 import {ethers} from 'ethers'
 // import './WalletCard.css'
+import employerContract from "./Employer.json"
 
 const WalletCard = () => {
 
@@ -10,10 +11,26 @@ const WalletCard = () => {
 	const [defaultAccount, setDefaultAccount] = useState(null);
 	const [userBalance, setUserBalance] = useState(null);
 	const [connButtonText, setConnButtonText] = useState('Connect Wallet');
+	const [employerSignedContract, setEmployerSignedContract] = useState(null);
+	const [employeeSalary, setEmployeeSalary] = useState(null);
 
     // const connectWalletHandler = () => {
 
     // }
+
+	const employerContractAbi = employerContract.abi;
+
+	const employerContractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+
+	const getSignedContract = (address, abi) => {
+		const { ethereum } = window;
+	
+		const provider = new ethers.providers.Web3Provider(ethereum, "any");
+	
+		const signer = provider.getSigner();
+		return new ethers.Contract(address, abi, signer);
+	}
+ 
     
 	const connectWalletHandler = () => {
 		if (window.ethereum && window.ethereum.isMetaMask) {
@@ -23,9 +40,12 @@ const WalletCard = () => {
 			.then(result => {
 				accountChangedHandler(result[0]);
 				setConnButtonText('Wallet Connected');
+				// console.log(employerContractAbi)
+				setEmployerSignedContract(getSignedContract(employerContractAddress, employerContractAbi));
 				getAccountBalance(result[0]);
 			})
 			.catch(error => {
+				console.log(error);
 				setErrorMessage(error.message);
 			
 			});
@@ -57,6 +77,18 @@ const WalletCard = () => {
 		window.location.reload();
 	}
 
+	const addEmployee = () => {
+		employerSignedContract.addEmployee("0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199", 3000);
+	}
+
+	const getEmployeeSalary = async (address) => {
+		const es = await employerSignedContract.getSalary(address)
+		const intEs = parseInt(es._hex, 16)
+		console.log(intEs)
+		setEmployeeSalary(intEs);
+	}
+
+	
 
 	// // listen for account changes
 	window.ethereum.on('accountsChanged', accountChangedHandler);
@@ -73,6 +105,12 @@ const WalletCard = () => {
 			<div className='balanceDisplay'>
 				<h3>Balance: {userBalance}</h3>
 			</div>
+			<div>
+				{employerSignedContract && <button onClick={addEmployee}>Add Employee</button>}
+				<button onClick={() => getEmployeeSalary("0x8626f6940E2eb28930eFb4CeF49B2d1F2C9C1199")}>Check employee's salary</button> 
+				{employeeSalary}
+			</div>
+			
 			{errorMessage}
 		</div>
 	);
