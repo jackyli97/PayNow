@@ -1,0 +1,32 @@
+[
+    {
+      "id": 1,
+      "fullName": "Jenny Chan",
+      "address": "0x0",
+      "annualSalary": "120000"
+    },
+    {
+      "id": 2,
+      "fullName": "Jessica warren",
+      "address": "0x1",
+      "annualSalary": "108000"
+    },
+    {
+      "id": 3,
+      "fullName": "Tony Frank",
+      "address": "0x2",
+      "annualSalary": "24000"
+    },
+    {
+      "id": 4,
+      "fullName": "Jeremy Clark",
+      "address": "0x3",
+      "annualSalary": "72000"
+    },
+    {
+      "id": 5,
+      "fullName": "Raymond Edwards",
+      "address": "0x4",
+      "annualSalary": "48000"
+    }
+  ]
